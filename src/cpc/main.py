@@ -15,3 +15,11 @@ app = FastAPI(
 def health_check() -> dict[str, str]:
     """Report the health of the CPC application."""
     return get_health()
+
+
+@app.get("/ready", tags=["Health"])
+def readiness_check() -> dict[str, str]:
+    """Report whether CPC is ready to accept requests."""
+    from cpc.health import get_readiness
+
+    return get_readiness()

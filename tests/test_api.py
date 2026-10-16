@@ -25,3 +25,18 @@ def test_openapi_documentation_is_available():
 
     assert response.status_code == 200
     assert "/health" in response.json()["paths"]
+
+
+def test_readiness_endpoint_returns_success():
+    response = client.get("/ready")
+
+    assert response.status_code == 200
+
+
+def test_readiness_endpoint_returns_expected_json():
+    response = client.get("/ready")
+
+    assert response.json() == {
+        "status": "ready",
+        "service": "cpc",
+    }
