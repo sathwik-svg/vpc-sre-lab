@@ -40,3 +40,19 @@ def test_readiness_endpoint_returns_expected_json():
         "status": "ready",
         "service": "cpc",
     }
+
+
+def test_metrics_endpoint_returns_prometheus_format():
+    response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert "text/plain" in response.headers["content-type"]
+    assert "# HELP" in response.text
+    assert "# TYPE" in response.text
+
+
+def test_metrics_endpoint_exposes_request_counters():
+    response = client.get("/metrics")
+
+    assert "cpc_http_requests_total" in response.text
+    assert "cpc_http_responses_total" in response.text
