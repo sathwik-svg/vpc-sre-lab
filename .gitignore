@@ -10,3 +10,19 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Secrets and private credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.token
+secrets/
+credentials/
+.envrc
+
+# Local configuration and generated artifacts
+.DS_Store
+Thumbs.db
+*.log

@@ -1,62 +1,56 @@
 # VPC Deployment Runbook
 
-## 1. Overview
+## 1. Current verified state
 
-VPC (Visual Private Cloud) is a local-first cloud reliability engineering
-project. The API runs in a Podman container and is exposed only on the
-host loopback interface.
+VPC is a local-first cloud reliability engineering lab running on Ubuntu
+Server with Podman.
 
-- Host API address: `http://127.0.0.1:8001`
-- Container API port: `8000`
-- Health endpoint: `/health`
-- Readiness endpoint: `/ready`
-- Container image: `localhost/vpc-api:0.2.0`
-- Container name: `vpc-api`
+The existing containers were verified as follows:
 
-The existing n8n service is independent and must remain untouched.
+| Container | Image | Host binding | Observed status |
+|---|---|---|---|
+| `vpc-test` | `localhost/vpc:0.1.0` | `127.0.0.1:18000` | Running |
+| `vpc-health-test` | `localhost/vpc:0.1.1` | `127.0.0.1:18001` | Running |
+| `vpc-health-test2` | `localhost/vpc:0.1.1` | `127.0.0.1:18002` | Healthy |
 
-## 2. Build the image
+The health and readiness endpoints on port `18002` returned successful
+responses during verification.
 
-From the repository root:
+These are existing lab containers, not a recommendation to run three
+copies indefinitely. Do not remove or recreate them until a separate
+deployment and rollback plan has been reviewed.
 
-```bash
-podman build -t localhost/vpc-api:0.2.0 .
-```
+The existing n8n service and its data must remain untouched.
 
-Confirm the image exists:
+## 2. Inspect containers
 
-```bash
-podman image inspect localhost/vpc-api:0.2.0
-```
-
-## 3. Run VPC
-
-If replacing an existing VPC container, first check its status and
-confirm the image and configuration you intend to deploy.
-
-To create the VPC container:
+List VPC containers:
 
 ```bash
-podman run -d \
-  --name vpc-api \
-  --publish 127.0.0.1:8001:8000 \
-  --restart unless-stopped \
-  --health-cmd 'python /app/healthcheck.py' \
-  --health-interval 30s \
-  --health-timeout 5s \
-  --health-start-period 10s \
-  --health-retries 3 \
-  localhost/vpc-api:0.2.0
+podman ps -a --filter name=vpc
 ```
 
-Do not remove or recreate the n8n container during VPC deployments.
+Inspect the verified API container:
 
-## 4. Verify the API
+```bash
+podman inspect vpc-health-test2
+```
+
+Review recent logs:
+
+```bash
+podman logs --tail 100 vpc-health-test2
+```
+
+Treat inspect output as potentially sensitive. Do not publish environment
+variables, credentials, tunnel tokens, or other secret values.
+
+## 3. Verify API health
 
 Check health:
 
 ```bash
-curl -fsS http://127.0.0.1:8001/health
+curl -fsS http://127.0.0.1:18002/health
 ```
 
 Expected response:
@@ -68,7 +62,7 @@ Expected response:
 Check readiness:
 
 ```bash
-curl -fsS http://127.0.0.1:8001/ready
+curl -fsS http://127.0.0.1:18002/ready
 ```
 
 Expected response:
@@ -77,62 +71,99 @@ Expected response:
 {"status":"ready","service":"vpc"}
 ```
 
-## 5. Verify container health
-
-List VPC:
+Check metrics:
 
 ```bash
-podman ps --filter name=vpc-api
+curl -fsS http://127.0.0.1:18002/metrics
 ```
 
-Inspect the health status:
+The metrics endpoint should return Prometheus-format text.
+
+## 4. Build an image for a future deployment
+
+The repository contains a `Containerfile`. Build a new, versioned image
+without replacing any running container:
 
 ```bash
-podman inspect --format '{{.State.Health.Status}}' vpc-api
+podman build -t localhost/vpc:0.2.0 -f Containerfile .
 ```
 
-Expected status after the initial health-check period:
-
-```text
-healthy
-```
-
-Run a health check immediately:
+Confirm the image exists:
 
 ```bash
-podman healthcheck run vpc-api
+podman image inspect localhost/vpc:0.2.0
 ```
 
-Inspect recorded health-check results:
+Building an image alone does not deploy it or change existing containers.
+
+Before creating a replacement container, review the configuration, verify
+the health-check behavior, and define a rollback procedure. Do not reuse
+an existing container name or host port without checking for conflicts.
+
+## 5. Container health checks
+
+List the current containers:
 
 ```bash
-podman inspect --format '{{json .State.Healthcheck}}' vpc-api
+podman ps --filter name=vpc
 ```
 
-## 6. Troubleshooting
-
-Inspect application logs:
+Inspect health status for the existing health-check container:
 
 ```bash
-podman logs --tail 100 vpc-api
+podman inspect --format '{{.State.Health.Status}}' vpc-health-test2
 ```
 
-Inspect the container:
+Run the configured health check:
 
 ```bash
-podman inspect vpc-api
+podman healthcheck run vpc-health-test2
 ```
 
-If the health status is `starting`, allow the initial checks to run.
-If it becomes `unhealthy`, inspect the health-check log and application
-logs before making changes.
+If health checks fail, inspect the health-check results and application
+logs before making changes. A healthy container does not prove the whole
+host or platform is healthy.
 
-## 7. Security and operational notes
+## 6. Frontend and Cloudflare connectivity
 
-- The host port is bound to `127.0.0.1`, not all host interfaces.
-- Do not publish VPC publicly or change firewall rules as part of this runbook.
-- The container runs as a non-root user.
-- The health check tests the application's `/health` response.
-- A healthy container does not prove that the entire host or platform is healthy.
-- This deployment is single-host and is not high availability.
-- Preserve the existing n8n container and its data during VPC changes.
+The static frontend hosted on Cloudflare cannot reach a service bound
+only to `127.0.0.1` on the Ubuntu server. A browser's localhost refers to
+the device running that browser, not the remote server.
+
+Choose and document the backend hosting model before configuring the
+frontend:
+
+- **Local-first:** keep the API private and access it through a deliberately
+  configured secure connection.
+- **Cloud-hosted API:** deploy the API separately with HTTPS, authentication
+  and appropriate access controls.
+
+A Cloudflare Tunnel can provide a route to a private service when
+configured intentionally. Verify the hostname, origin service, access
+policy, and API authentication before relying on it. Do not publish tunnel
+tokens or secrets in the repository or frontend JavaScript.
+
+Do not change tunnel configuration, DNS, firewall rules, or existing
+services as part of this documentation-only runbook.
+
+## 7. Security and operations
+
+- Keep the API bound to loopback unless a reviewed design requires otherwise.
+- Run the application as a non-root container user.
+- Keep secrets out of Git, frontend assets, logs, and public issue reports.
+- Use HTTPS for remote browser-to-API traffic.
+- Add authentication and authorization before exposing private operations.
+- Limit metrics access if they reveal operational information.
+- Back up important data before any destructive deployment operation.
+- Preserve unrelated services, especially n8n and its data.
+- This is a single-host learning lab, not a high-availability platform.
+
+## 8. Recovery checklist
+
+1. Confirm which container and endpoint are failing.
+2. Check container status and recent logs.
+3. Test `/health` and `/ready` locally.
+4. Review recent code or configuration changes.
+5. Roll back only the affected VPC component if required.
+6. Re-test the API and confirm unrelated services remain operational.
+7. Record the incident, root cause, and preventive action.
