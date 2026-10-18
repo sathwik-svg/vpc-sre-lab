@@ -10,7 +10,7 @@ runs an n8n workload under Podman.
 
 ## Decision
 
-Develop CPC locally, preserve the existing workload, and
+Develop VPC locally, preserve the existing workload, and
 validate application behavior before adding infrastructure.
 
 ## Consequences

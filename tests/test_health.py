@@ -1,4 +1,4 @@
-from cpc.health import get_health
+from vpc.health import get_health
 
 
 def test_health_reports_service_as_healthy():
@@ -6,5 +6,5 @@ def test_health_reports_service_as_healthy():
 
     assert result == {
         "status": "healthy",
-        "service": "cpc",
+        "service": "vpc",
     }

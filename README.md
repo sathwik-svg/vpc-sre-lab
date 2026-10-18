@@ -1,4 +1,4 @@
-# CPC — Visual Private Cloud
+# VPC — Visual Private Cloud
 
 An on-premises private-cloud simulation and Site Reliability
 Engineering (SRE) learning platform inspired by Ireland.
@@ -23,7 +23,7 @@ Engineering (SRE) learning platform inspired by Ireland.
 
 Phase: Foundation
 Sprint: 1
-Current task: CPC-001 — Engineering baseline
+Current task: VPC-001 — Engineering baseline
 
 ## Local development
 

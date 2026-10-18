@@ -1,4 +1,4 @@
-# CPC Architecture — Initial Design
+# VPC Architecture — Initial Design
 
 ## Host
 
@@ -8,12 +8,12 @@ and a 44 GiB root filesystem.
 ## Existing runtime
 
 Podman 5.7.0. The existing n8n workload uses port 5678.
-CPC must not modify or replace that workload.
+VPC must not modify or replace that workload.
 
 ## Proposed application flow
 
 Client
-  -> CPC API
+  -> VPC API
   -> Health and readiness endpoints
   -> Application metrics
   -> Monitoring and visualization
@@ -29,7 +29,7 @@ Client
 
 ## Network and security
 
-CPC will initially remain local to the development environment.
+VPC will initially remain local to the development environment.
 Ports will be chosen after inspecting existing listeners.
 No public ingress or host firewall changes are planned.
 

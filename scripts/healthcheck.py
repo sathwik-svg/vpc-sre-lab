@@ -1,4 +1,4 @@
-"""Check whether the CPC API health endpoint responds successfully."""
+"""Check whether the VPC API health endpoint responds successfully."""
 
 import json
 import urllib.error
