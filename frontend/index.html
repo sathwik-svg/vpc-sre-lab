@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07111f"><meta name="description" content="VPC cloud reliability engineering dashboard">
+<title>VPC | Cloud Reliability Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+</head>
+<body>
+<div class="ambient a"></div><div class="ambient b"></div>
+<aside class="sidebar" id="sidebar">
+<a class="brand" href="#overview"><span class="logo"><i></i><i></i><i></i></span><span><b>VPC</b><small>RELIABILITY PLATFORM</small></span></a>
+<p class="nav-label">WORKSPACE</p><nav>
+<a class="nav-link active" href="#overview">◈ &nbsp; Overview <span class="nav-dot"></span></a>
+<a class="nav-link" href="#architecture">⌘ &nbsp; Architecture</a><a class="nav-link" href="#observability">⌁ &nbsp; Observability</a><a class="nav-link" href="#operations">↗ &nbsp; Operations</a>
+</nav>
+<div class="side-bottom"><div class="env-card"><small>● LOCAL ENVIRONMENT</small><b>VPC API service</b><p>Port <code>18002</code></p><p>Runtime <code>Podman</code></p><p>Mode <code>Local-first</code></p></div><div class="profile"><span>S</span><div><b>Cloud Engineer</b><small>Reliability lab</small></div></div></div>
+</aside>
+<main id="overview">
+<header class="topbar"><button id="menuToggle" class="mobile-menu" aria-label="Toggle menu">☰</button><div class="crumb">Workspace <span>/</span> <b>Overview</b></div><div class="top-actions"><label><i></i> LIVE CONSOLE</label><button id="refreshButton" aria-label="Refresh checks" title="Refresh">↻</button><span class="top-avatar">S</span></div></header>
+<section class="hero"><div class="hero-copy"><div class="eyebrow"> <span></span> CLOUD RELIABILITY ENGINEERING</div><h1>Build resilient.<br><em>Operate confidently.</em></h1><p>A live control surface for service health, readiness and operational signals — built as a hands-on SRE learning lab.</p><div class="actions"><a class="primary" href="#architecture">Explore architecture <b>↗</b></a><a class="secondary" href="#observability">View telemetry ↓</a></div></div>
+<div class="hero-art" aria-label="Animated cloud infrastructure graphic"><div class="orbit o1"></div><div class="orbit o2"></div><div class="orbit o3"></div><span class="orb-node n1"></span><span class="orb-node n2"></span><span class="orb-node n3"></span><div class="core"><span>V</span><i></i></div><div class="float-tag t1">● API SERVICE <b>8000</b></div><div class="float-tag t2">✓ HEALTH <b id="heroHealth">Checking</b></div><div class="float-tag t3">▥ METRICS <b>Prometheus</b></div></div></section>
+<section class="section-head"><div><small>SYSTEM SNAPSHOT</small><h2>Service overview</h2></div><div class="auto"><i></i> Auto-refresh every 15 seconds</div></section>
+<section class="metrics" id="observability">
+<article class="metric"><div class="metric-head">Service health <span class="symbol green">✳</span></div><strong id="healthValue">Checking</strong><div class="foot"><span id="healthPill" class="pill">● CONNECTING</span><code>GET /health</code></div><svg class="spark green-stroke" viewBox="0 0 240 35" preserveAspectRatio="none"><path d="M0 29 C20 30 28 10 45 19 S68 29 84 20 S106 27 123 13 S146 21 163 11 S191 20 209 8 S228 13 240 4"/></svg></article>
+<article class="metric"><div class="metric-head">Readiness <span class="symbol blue">⌁</span></div><strong id="readyValue">Checking</strong><div class="foot"><span id="readyPill" class="pill blue-pill">● WAITING</span><code>GET /ready</code></div><svg class="spark blue-stroke" viewBox="0 0 240 35" preserveAspectRatio="none"><path d="M0 27 C18 25 28 30 43 18 S65 24 82 17 S105 28 124 16 S147 20 164 11 S187 17 205 8 S226 10 240 5"/></svg></article>
+<article class="metric"><div class="metric-head">Request counter <span class="symbol purple">↗</span></div><strong id="requestValue">—<small> req</small></strong><div class="foot"><span class="pill purple-pill">● PROMETHEUS</span><code>vpc_http_requests_total</code></div><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+<article class="metric"><div class="metric-head">API response <span class="symbol amber">◷</span></div><strong id="latencyValue">—<small> ms avg</small></strong><div class="foot"><span class="pill amber-pill">● OBSERVED</span><code>Histogram estimate</code></div><div class="track"><span id="latencyBar"></span></div></article>
+</section>
+<section class="content-grid">
+<article class="panel" id="architecture"><div class="panel-title"><div><small>REQUEST LIFECYCLE</small><h2>Service architecture</h2></div><span class="tag">LOCAL LAB</span></div><div class="architecture"><div class="arch-node"><span>⌘</span><b>Client</b><small>HTTP request</small></div><div class="connector"><i>HTTP</i><span></span></div><div class="arch-node api-node"><span>◇</span><b>FastAPI</b><small>Uvicorn · :8000</small><em></em></div><div class="connector"><i>Signals</i><span></span></div><div class="arch-node"><span class="purple-text">▥</span><b>Metrics</b><small>Prometheus</small></div></div><p class="caption"><i></i> Request flow · Health and readiness are independently checked</p></article>
+<article class="panel" id="operations"><div class="panel-title"><div><small>AUTOMATED PROBES</small><h2>Endpoint checks</h2></div><button id="runChecks">Run checks ↻</button></div>
+<div class="endpoint"><span class="endpoint-icon">♥</span><div><b>Health check</b><code>/health</code></div><strong id="healthEndpointStatus">Checking</strong></div>
+<div class="endpoint"><span class="endpoint-icon blue-icon">◉</span><div><b>Readiness probe</b><code>/ready</code></div><strong id="readyEndpointStatus">Checking</strong></div>
+<div class="endpoint"><span class="endpoint-icon purple-icon">▥</span><div><b>Metrics endpoint</b><code>/metrics</code></div><strong id="metricsEndpointStatus">Checking</strong></div>
+<p class="check-footer"><i></i><span id="lastChecked">Waiting for first probe…</span></p></article>
+</section>
+<section class="principles panel"><div><small>ENGINEERING PRINCIPLES</small><h2>Reliability is a practice.</h2><p>Production-minded habits for observable, diagnosable and resilient systems.</p></div><div><label>01</label><b>Health ≠ readiness</b><p>Separate process health from the ability to serve traffic.</p></div><div><label>02</label><b>Measure the system</b><p>Use request counters and latency histograms for analysis.</p></div><div><label>03</label><b>Verify before release</b><p>Repeatable probes and tests reduce deployment risk.</p></div></section>
+<footer><b>▥ VPC <span>·</span> Visual Private Cloud</b><span>Built for learning, observability and operational excellence.</span><span id="footerStatus">● Connecting to API</span></footer>
+</main><div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>
